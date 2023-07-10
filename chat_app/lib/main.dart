@@ -16,9 +16,10 @@ class ChatApp extends StatelessWidget {
       title: 'Chat GPT 2.0',
       theme: ThemeData(
         primarySwatch: Colors.blue,
-        primaryColor: Colors.blueGrey[900], // Set the primary color
-        brightness: Brightness.dark, // Set the theme to use a dark background
+        primaryColor: Colors.white,
+        brightness: Brightness.light,
         visualDensity: VisualDensity.adaptivePlatformDensity,
+        fontFamily: 'Arial', // Change the font to Arial
       ),
       home: const ChatScreen(),
     );
@@ -46,8 +47,8 @@ class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _messageController = TextEditingController();
   final List<ChatMessage> _messages = [];
   StreamSubscription<String>? _responseSubscription;
-  bool _isLoading = false; // Add isLoading variable
-  bool _isMessageEmpty = true; // Add isMessageEmpty variable
+  bool _isLoading = false;
+  bool _isMessageEmpty = true;
 
   Future<void> _sendMessage(String message) async {
     try {
@@ -63,11 +64,9 @@ class _ChatScreenState extends State<ChatScreen> {
       if (response.statusCode == 200) {
         final responseBody = response.body;
 
-        // Check if the response is a valid JSON string
         if (responseBody != null && responseBody.isNotEmpty) {
           final jsonData = jsonDecode(responseBody);
 
-          // Handle the response based on the expected format
           if (jsonData['response'] != null && jsonData['response'] is List) {
             final responseList = jsonData['response'];
 
@@ -77,7 +76,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 final content = item['content'];
                 _messages.add(ChatMessage(sender: role, message: content));
               }
-              _isLoading = false; // Set isLoading to false after receiving the response
+              _isLoading = false;
             });
           } else {
             print('Invalid response format: $responseBody');
@@ -109,26 +108,26 @@ class _ChatScreenState extends State<ChatScreen> {
             child: Stack(
               children: [
                 ListView.builder(
-                  reverse: true, // Reverse the list to show new messages at the bottom
+                  reverse: true,
                   itemCount: _messages.length,
                   itemBuilder: (ctx, index) {
                     final chatMessage = _messages.reversed.toList()[index];
                     return ListTile(
                       title: Align(
                         alignment: chatMessage.sender == 'user'
-                            ? Alignment.centerRight // Align user's messages to the right
-                            : Alignment.centerLeft, // Align assistant's replies to the left
+                            ? Alignment.centerRight
+                            : Alignment.centerLeft,
                         child: Container(
                           padding: const EdgeInsets.all(8.0),
                           decoration: BoxDecoration(
                             color: chatMessage.sender == 'user'
-                                ? Colors.blueAccent // Color for user's message
-                                : const Color.fromARGB(255, 1, 78, 41), // Color for assistant's reply
+                                ? Colors.blue.withOpacity(0.1)
+                                : Colors.grey.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(8.0),
                           ),
                           child: Text(
                             chatMessage.message,
-                            style: const TextStyle(color: Colors.white),
+                            style: const TextStyle(color: Colors.black),
                           ),
                         ),
                       ),
@@ -149,45 +148,44 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
           ),
           Padding(
-  padding: const EdgeInsets.all(8.0),
-  child: TextField(
-    controller: _messageController,
-    onChanged: (value) {
-      setState(() {
-        _isMessageEmpty = value.trim().isEmpty;
-      });
-    },
-    decoration: InputDecoration(
-      labelText: 'Send a message',
-      border: OutlineInputBorder(),
-      focusedBorder: OutlineInputBorder(
-        borderSide: BorderSide(color: Colors.white), // Set the focused border color to white
-        borderRadius: BorderRadius.circular(8.0),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderSide: BorderSide(color: Colors.white), // Set the enabled border color to white
-        borderRadius: BorderRadius.circular(8.0),
-      ),
-      suffixIcon: IconButton(
-        onPressed: _isMessageEmpty ? null : () {
-          final message = _messageController.text.trim();
-          if (message.isNotEmpty) {
-            setState(() {
-              _isLoading = true;
-            });
-            _sendMessage(message);
-            _messageController.clear();
-          }
-        },
-        icon: Icon(Icons.send),
-        color: _isMessageEmpty ? Colors.white : Color.fromARGB(255, 5, 155, 18),
-      ),
-    ),
-    style: TextStyle(color: Colors.white), // Set the text color to white
-    cursorColor: Colors.white, // Set the cursor color to white
-  ),
-),
-
+            padding: const EdgeInsets.all(8.0),
+            child: TextField(
+              controller: _messageController,
+              onChanged: (value) {
+                setState(() {
+                  _isMessageEmpty = value.trim().isEmpty;
+                });
+              },
+              decoration: InputDecoration(
+                labelText: 'Send a message',
+                border: OutlineInputBorder(),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.blue),
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.grey),
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+                suffixIcon: IconButton(
+                  onPressed: _isMessageEmpty ? null : () {
+                    final message = _messageController.text.trim();
+                    if (message.isNotEmpty) {
+                      setState(() {
+                        _isLoading = true;
+                      });
+                      _sendMessage(message);
+                      _messageController.clear();
+                    }
+                  },
+                  icon: Icon(Icons.send),
+                  color: _isMessageEmpty ? Colors.grey : Colors.blue,
+                ),
+              ),
+              style: const TextStyle(color: Colors.black),
+              cursorColor: Colors.blue,
+            ),
+          ),
         ],
       ),
     );
