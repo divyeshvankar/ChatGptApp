@@ -13,7 +13,7 @@ class ChatApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Chat App',
+      title: 'Chat GPT 2.0',
       theme: ThemeData(
         primarySwatch: Colors.blue,
         primaryColor: Colors.blueGrey[900], // Set the primary color
@@ -101,7 +101,7 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Chat App')),
+      appBar: AppBar(title: const Text('Chat GPT 2.0')),
       body: Column(
         children: [
           Expanded(
@@ -155,7 +155,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   child: TextField(
                     controller: _messageController,
                     decoration: const InputDecoration(
-                      labelText: 'Message',
+                      labelText: 'Send a message',
                       border: OutlineInputBorder(),
                     ),
                   ),
