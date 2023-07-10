@@ -14,12 +14,14 @@ class ChatApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Chat GPT 2.0',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        primaryColor: Colors.white,
-        brightness: Brightness.light,
-        visualDensity: VisualDensity.adaptivePlatformDensity,
-        fontFamily: 'Arial', // Change the font to Arial
+      theme: ThemeData.dark().copyWith(
+        primaryColor: Colors.blue,
+        colorScheme: ColorScheme.fromSwatch().copyWith(
+          secondary: Colors.blue,
+        ),
+        textSelectionTheme: TextSelectionThemeData(
+          selectionColor: Colors.blue,
+        ),
       ),
       home: const ChatScreen(),
     );
@@ -121,13 +123,13 @@ class _ChatScreenState extends State<ChatScreen> {
                           padding: const EdgeInsets.all(8.0),
                           decoration: BoxDecoration(
                             color: chatMessage.sender == 'user'
-                                ? Colors.blue.withOpacity(0.1)
-                                : Colors.grey.withOpacity(0.1),
+                                ? Colors.blue.withOpacity(0.2)
+                                : Colors.grey.withOpacity(0.2),
                             borderRadius: BorderRadius.circular(8.0),
                           ),
                           child: Text(
                             chatMessage.message,
-                            style: const TextStyle(color: Colors.black),
+                            style: const TextStyle(color: Colors.white),
                           ),
                         ),
                       ),
@@ -182,7 +184,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   color: _isMessageEmpty ? Colors.grey : Colors.blue,
                 ),
               ),
-              style: const TextStyle(color: Colors.black),
+              style: const TextStyle(color: Colors.white),
               cursorColor: Colors.blue,
             ),
           ),
