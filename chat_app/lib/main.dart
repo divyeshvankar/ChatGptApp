@@ -107,7 +107,7 @@ class _ChatScreenState extends State<ChatScreen> {
               reverse: true, // Reverse the list to show new messages at the bottom
               itemCount: _messages.length,
               itemBuilder: (ctx, index) {
-                final chatMessage = _messages[index];
+                final chatMessage = _messages.reversed.toList()[index];
                 return ListTile(
                   title: Align(
                     alignment: chatMessage.sender == 'user'
@@ -118,7 +118,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       decoration: BoxDecoration(
                         color: chatMessage.sender == 'user'
                             ? Colors.blueAccent // Color for user's message
-                            : Colors.greenAccent, // Color for assistant's reply
+                            : const Color.fromARGB(255, 1, 78, 41), // Color for assistant's reply
                         borderRadius: BorderRadius.circular(8.0),
                       ),
                       child: Text(
