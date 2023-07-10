@@ -168,7 +168,12 @@ class _ChatScreenState extends State<ChatScreen> {
                           ),
                           child: Text(
                             chatMessage.message,
-                            style: const TextStyle(color: Colors.white),
+                            style: TextStyle(
+                              color: chatMessage.sender == 'user'
+                                  ? Colors.blue
+                                  : Colors.black,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                       ),
@@ -223,7 +228,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   color: _isMessageEmpty ? Colors.grey : Colors.blue,
                 ),
               ),
-              style: const TextStyle(color: Colors.white),
+              style: TextStyle(color: Colors.black),
               cursorColor: Colors.blue,
             ),
           ),
