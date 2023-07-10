@@ -47,6 +47,7 @@ class _ChatScreenState extends State<ChatScreen> {
   final List<ChatMessage> _messages = [];
   StreamSubscription<String>? _responseSubscription;
   bool _isLoading = false; // Add isLoading variable
+  bool _isMessageEmpty = true; // Add isMessageEmpty variable
 
   Future<void> _sendMessage(String message) async {
     try {
@@ -148,34 +149,45 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _messageController,
-                    decoration: const InputDecoration(
-                      labelText: 'Send a message',
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                ),
-                IconButton( // Replace ElevatedButton with IconButton
-                  onPressed: () {
-                    final message = _messageController.text.trim();
-                    if (message.isNotEmpty) {
-                      setState(() {
-                        _isLoading = true; // Set isLoading to true when sending the message
-                      });
-                      _sendMessage(message);
-                      _messageController.clear();
-                    }
-                  },
-                  icon: Icon(Icons.send), // Use send icon
-                ),
-              ],
-            ),
-          ),
+  padding: const EdgeInsets.all(8.0),
+  child: TextField(
+    controller: _messageController,
+    onChanged: (value) {
+      setState(() {
+        _isMessageEmpty = value.trim().isEmpty;
+      });
+    },
+    decoration: InputDecoration(
+      labelText: 'Send a message',
+      border: OutlineInputBorder(),
+      focusedBorder: OutlineInputBorder(
+        borderSide: BorderSide(color: Colors.white), // Set the focused border color to white
+        borderRadius: BorderRadius.circular(8.0),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderSide: BorderSide(color: Colors.white), // Set the enabled border color to white
+        borderRadius: BorderRadius.circular(8.0),
+      ),
+      suffixIcon: IconButton(
+        onPressed: _isMessageEmpty ? null : () {
+          final message = _messageController.text.trim();
+          if (message.isNotEmpty) {
+            setState(() {
+              _isLoading = true;
+            });
+            _sendMessage(message);
+            _messageController.clear();
+          }
+        },
+        icon: Icon(Icons.send),
+        color: _isMessageEmpty ? Colors.white : Color.fromARGB(255, 5, 155, 18),
+      ),
+    ),
+    style: TextStyle(color: Colors.white), // Set the text color to white
+    cursorColor: Colors.white, // Set the cursor color to white
+  ),
+),
+
         ],
       ),
     );
