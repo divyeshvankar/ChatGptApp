@@ -1,16 +1,13 @@
-
 import os
 import openai
 import config
-
-openai.api_key = config.API_KEY
-
-
-
-
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from fastapi.responses import StreamingResponse
+import json
+
+openai.api_key = config.API_KEY
 
 app = FastAPI()
 
@@ -31,30 +28,35 @@ async def chat_options():
 
 @app.post("/chat")
 async def chat(message: Message):
-    # Process the incoming message and generate a response
-    response = generate_chat_response(message.message)
+    # Create a generator function to stream the response line by line
+    async def generate_response():
+        yield '{"response": ['
 
-    return {"response": response}
+        # Define the conversation history with the chat model
+        conversation_history = [
 
-
-def generate_chat_response(message):
-    # Define the conversation history with the chat model
-    conversation_history = [
-        {"role": "system", "content": "You are a helpful assistant."},
-        {"role": "user", "content": message}
-    ]
-      
-    completion = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
-        messages=[
-            {"role": "system", "content": "You are a helpful assistant."},
-            {"role": "user", "content": message}
+            {"role": "user", "content": message.message}
         ]
-    )
 
-    print(completion.choices[0].message)
+        # Send the initial system message and user message to OpenAI API
+        for i, msg in enumerate(conversation_history):
+            if i > 0:
+                yield ','
+            yield json.dumps(msg)
 
-    return completion.choices[0].message
+        # Process the incoming message and generate a response
+        completion = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=conversation_history
+        )
 
-if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+        # Yield each line of the response separately
+        for i, choice in enumerate(completion.choices):
+            if choice:
+                yield ','
+            yield json.dumps(choice.message)
+
+        yield "]}"
+      
+    # Return the StreamingResponse to stream the response line by line
+    return StreamingResponse(generate_response(), media_type="application/json")
