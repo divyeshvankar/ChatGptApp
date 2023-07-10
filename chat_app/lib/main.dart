@@ -2,9 +2,26 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:async';
+import 'package:provider/provider.dart';
 
 void main() {
-  runApp(const ChatApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => ThemeProvider(),
+      child: const ChatApp(),
+    ),
+  );
+}
+
+class ThemeProvider extends ChangeNotifier {
+  bool _isDarkMode = false;
+
+  bool get isDarkMode => _isDarkMode;
+
+  void toggleTheme() {
+    _isDarkMode = !_isDarkMode;
+    notifyListeners();
+  }
 }
 
 class ChatApp extends StatelessWidget {
@@ -12,21 +29,31 @@ class ChatApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+
     return MaterialApp(
       title: 'Chat GPT 2.0',
-      theme: ThemeData.dark().copyWith(
-        primaryColor: Colors.blue,
-        colorScheme: ColorScheme.fromSwatch().copyWith(
-          secondary: Colors.blue,
-        ),
-        textSelectionTheme: TextSelectionThemeData(
-          selectionColor: Colors.blue,
-        ),
-      ),
+      theme: themeProvider.isDarkMode ? darkTheme : lightTheme,
       home: const ChatScreen(),
     );
   }
 }
+
+final lightTheme = ThemeData(
+  primarySwatch: Colors.blue,
+  primaryColor: Colors.white,
+  brightness: Brightness.light,
+  visualDensity: VisualDensity.adaptivePlatformDensity,
+  fontFamily: 'Arial',
+);
+
+final darkTheme = ThemeData(
+  primarySwatch: Colors.blue,
+  primaryColor: Colors.blueGrey[900],
+  brightness: Brightness.dark,
+  visualDensity: VisualDensity.adaptivePlatformDensity,
+  fontFamily: 'Arial',
+);
 
 class ChatMessage {
   final String sender;
@@ -102,8 +129,20 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Chat GPT 2.0')),
+      appBar: AppBar(
+        title: const Text('Chat GPT 2.0'),
+        actions: [
+          IconButton(
+            onPressed: () {
+              themeProvider.toggleTheme();
+            },
+            icon: Icon(themeProvider.isDarkMode ? Icons.light_mode : Icons.dark_mode),
+          ),
+        ],
+      ),
       body: Column(
         children: [
           Expanded(
