@@ -160,8 +160,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     ),
                   ),
                 ),
-                const SizedBox(width: 8.0),
-                ElevatedButton(
+                IconButton( // Replace ElevatedButton with IconButton
                   onPressed: () {
                     final message = _messageController.text.trim();
                     if (message.isNotEmpty) {
@@ -172,7 +171,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       _messageController.clear();
                     }
                   },
-                  child: const Text('Send'),
+                  icon: Icon(Icons.send), // Use send icon
                 ),
               ],
             ),
