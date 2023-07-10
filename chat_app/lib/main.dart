@@ -15,8 +15,10 @@ class ChatApp extends StatelessWidget {
     return MaterialApp(
       title: 'Chat App',
       theme: ThemeData(
-        brightness: Brightness.dark, // Set the theme to use black background
         primarySwatch: Colors.blue,
+        primaryColor: Colors.blueGrey[900], // Set the primary color
+        brightness: Brightness.dark, // Set the theme to use a dark background
+        visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
       home: const ChatScreen(),
     );
@@ -46,49 +48,47 @@ class _ChatScreenState extends State<ChatScreen> {
   StreamSubscription<String>? _responseSubscription;
 
   Future<void> _sendMessage(String message) async {
-  try {
-    final url = Uri.parse('http://192.168.201.182:8000/chat');
-    final response = await http.post(
-      url,
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        "message": message,
-      }),
-    );
+    try {
+      final url = Uri.parse('http://192.168.201.182:8000/chat');
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          "message": message,
+        }),
+      );
 
-    if (response.statusCode == 200) {
-      final responseBody = response.body;
+      if (response.statusCode == 200) {
+        final responseBody = response.body;
 
-      // Check if the response is a valid JSON string
-      if (responseBody != null && responseBody.isNotEmpty) {
-        final jsonData = jsonDecode(responseBody);
+        // Check if the response is a valid JSON string
+        if (responseBody != null && responseBody.isNotEmpty) {
+          final jsonData = jsonDecode(responseBody);
 
-        // Handle the response based on the expected format
-        if (jsonData['response'] != null && jsonData['response'] is List) {
-          final responseList = jsonData['response'];
+          // Handle the response based on the expected format
+          if (jsonData['response'] != null && jsonData['response'] is List) {
+            final responseList = jsonData['response'];
 
-          setState(() {
-            for (final item in responseList) {
-              final role = item['role'];
-              final content = item['content'];
-              _messages.add(ChatMessage(sender: role, message: content));
-            }
-          });
+            setState(() {
+              for (final item in responseList) {
+                final role = item['role'];
+                final content = item['content'];
+                _messages.add(ChatMessage(sender: role, message: content));
+              }
+            });
+          } else {
+            print('Invalid response format: $responseBody');
+          }
         } else {
-          print('Invalid response format: $responseBody');
+          print('Empty response received');
         }
       } else {
-        print('Empty response received');
+        print('Failed to send message. StatusCode: ${response.statusCode}');
       }
-    } else {
-      print('Failed to send message. StatusCode: ${response.statusCode}');
+    } catch (e) {
+      print('Error sending message: $e');
     }
-  } catch (e) {
-    print('Error sending message: $e');
   }
-}
-
-// h    
 
   @override
   void dispose() {
@@ -104,16 +104,27 @@ class _ChatScreenState extends State<ChatScreen> {
         children: [
           Expanded(
             child: ListView.builder(
+              reverse: true, // Reverse the list to show new messages at the bottom
               itemCount: _messages.length,
               itemBuilder: (ctx, index) {
                 final chatMessage = _messages[index];
                 return ListTile(
-                  title: Text(
-                    chatMessage.message,
-                    style: TextStyle(
-                      color: chatMessage.sender == 'user'
-                          ? Colors.lightBlueAccent // Color for user's message
-                          : Colors.lightGreenAccent, // Color for assistant's reply
+                  title: Align(
+                    alignment: chatMessage.sender == 'user'
+                        ? Alignment.centerRight // Align user's messages to the right
+                        : Alignment.centerLeft, // Align assistant's replies to the left
+                    child: Container(
+                      padding: const EdgeInsets.all(8.0),
+                      decoration: BoxDecoration(
+                        color: chatMessage.sender == 'user'
+                            ? Colors.blueAccent // Color for user's message
+                            : Colors.greenAccent, // Color for assistant's reply
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
+                      child: Text(
+                        chatMessage.message,
+                        style: const TextStyle(color: Colors.white),
+                      ),
                     ),
                   ),
                 );
