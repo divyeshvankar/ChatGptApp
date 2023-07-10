@@ -17,7 +17,7 @@ settings.ini
 # Dependency directories
 __pycache__/
 env/
-lib/
+
 python_lib/
 
 # Environment variables
