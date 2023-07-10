@@ -46,6 +46,7 @@ class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _messageController = TextEditingController();
   final List<ChatMessage> _messages = [];
   StreamSubscription<String>? _responseSubscription;
+  bool _isLoading = false; // Add isLoading variable
 
   Future<void> _sendMessage(String message) async {
     try {
@@ -75,6 +76,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 final content = item['content'];
                 _messages.add(ChatMessage(sender: role, message: content));
               }
+              _isLoading = false; // Set isLoading to false after receiving the response
             });
           } else {
             print('Invalid response format: $responseBody');
@@ -103,32 +105,46 @@ class _ChatScreenState extends State<ChatScreen> {
       body: Column(
         children: [
           Expanded(
-            child: ListView.builder(
-              reverse: true, // Reverse the list to show new messages at the bottom
-              itemCount: _messages.length,
-              itemBuilder: (ctx, index) {
-                final chatMessage = _messages.reversed.toList()[index];
-                return ListTile(
-                  title: Align(
-                    alignment: chatMessage.sender == 'user'
-                        ? Alignment.centerRight // Align user's messages to the right
-                        : Alignment.centerLeft, // Align assistant's replies to the left
+            child: Stack(
+              children: [
+                ListView.builder(
+                  reverse: true, // Reverse the list to show new messages at the bottom
+                  itemCount: _messages.length,
+                  itemBuilder: (ctx, index) {
+                    final chatMessage = _messages.reversed.toList()[index];
+                    return ListTile(
+                      title: Align(
+                        alignment: chatMessage.sender == 'user'
+                            ? Alignment.centerRight // Align user's messages to the right
+                            : Alignment.centerLeft, // Align assistant's replies to the left
+                        child: Container(
+                          padding: const EdgeInsets.all(8.0),
+                          decoration: BoxDecoration(
+                            color: chatMessage.sender == 'user'
+                                ? Colors.blueAccent // Color for user's message
+                                : const Color.fromARGB(255, 1, 78, 41), // Color for assistant's reply
+                            borderRadius: BorderRadius.circular(8.0),
+                          ),
+                          child: Text(
+                            chatMessage.message,
+                            style: const TextStyle(color: Colors.white),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                if (_isLoading)
+                  Positioned(
+                    bottom: 0,
                     child: Container(
-                      padding: const EdgeInsets.all(8.0),
-                      decoration: BoxDecoration(
-                        color: chatMessage.sender == 'user'
-                            ? Colors.blueAccent // Color for user's message
-                            : const Color.fromARGB(255, 1, 78, 41), // Color for assistant's reply
-                        borderRadius: BorderRadius.circular(8.0),
-                      ),
-                      child: Text(
-                        chatMessage.message,
-                        style: const TextStyle(color: Colors.white),
-                      ),
+                      width: MediaQuery.of(context).size.width,
+                      padding: const EdgeInsets.all(16.0),
+                      alignment: Alignment.center,
+                      child: CircularProgressIndicator(),
                     ),
                   ),
-                );
-              },
+              ],
             ),
           ),
           Padding(
@@ -149,6 +165,9 @@ class _ChatScreenState extends State<ChatScreen> {
                   onPressed: () {
                     final message = _messageController.text.trim();
                     if (message.isNotEmpty) {
+                      setState(() {
+                        _isLoading = true; // Set isLoading to true when sending the message
+                      });
                       _sendMessage(message);
                       _messageController.clear();
                     }
