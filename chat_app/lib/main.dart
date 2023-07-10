@@ -24,37 +24,6 @@ class ThemeProvider extends ChangeNotifier {
   }
 }
 
-class ChatApp extends StatelessWidget {
-  const ChatApp({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    final themeProvider = Provider.of<ThemeProvider>(context);
-
-    return MaterialApp(
-      title: 'Chat GPT 2.0',
-      theme: themeProvider.isDarkMode ? darkTheme : lightTheme,
-      home: const ChatScreen(),
-    );
-  }
-}
-
-final lightTheme = ThemeData(
-  primarySwatch: Colors.blue,
-  primaryColor: Colors.white,
-  brightness: Brightness.light,
-  visualDensity: VisualDensity.adaptivePlatformDensity,
-  fontFamily: 'Arial',
-);
-
-final darkTheme = ThemeData(
-  primarySwatch: Colors.blue,
-  primaryColor: Colors.blueGrey[900],
-  brightness: Brightness.dark,
-  visualDensity: VisualDensity.adaptivePlatformDensity,
-  fontFamily: 'Arial',
-);
-
 class ChatMessage {
   final String sender;
   final String message;
@@ -76,8 +45,8 @@ class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _messageController = TextEditingController();
   final List<ChatMessage> _messages = [];
   StreamSubscription<String>? _responseSubscription;
-  bool _isLoading = false;
   bool _isMessageEmpty = true;
+  bool _isLoading = false; // Added variable for loading state
 
   Future<void> _sendMessage(String message) async {
     try {
@@ -105,7 +74,6 @@ class _ChatScreenState extends State<ChatScreen> {
                 final content = item['content'];
                 _messages.add(ChatMessage(sender: role, message: content));
               }
-              _isLoading = false;
             });
           } else {
             print('Invalid response format: $responseBody');
@@ -146,53 +114,39 @@ class _ChatScreenState extends State<ChatScreen> {
       body: Column(
         children: [
           Expanded(
-            child: Stack(
-              children: [
-                ListView.builder(
-                  reverse: true,
-                  itemCount: _messages.length,
-                  itemBuilder: (ctx, index) {
-                    final chatMessage = _messages.reversed.toList()[index];
-                    return ListTile(
-                      title: Align(
-                        alignment: chatMessage.sender == 'user'
-                            ? Alignment.centerRight
-                            : Alignment.centerLeft,
-                        child: Container(
-                          padding: const EdgeInsets.all(8.0),
-                          decoration: BoxDecoration(
-                            color: chatMessage.sender == 'user'
-                                ? Colors.blue.withOpacity(0.2)
-                                : Colors.grey.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(8.0),
-                          ),
-                          child: Text(
-                            chatMessage.message,
-                            style: TextStyle(
-                              color: chatMessage.sender == 'user'
-                                  ? Colors.blue
-                                  : themeProvider.isDarkMode
-                                      ? Colors.white
-                                      : Colors.black,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+            child: ListView.builder(
+              reverse: true,
+              itemCount: _messages.length,
+              itemBuilder: (ctx, index) {
+                final chatMessage = _messages.reversed.toList()[index];
+                return ListTile(
+                  title: Align(
+                    alignment: chatMessage.sender == 'user'
+                        ? Alignment.centerRight
+                        : Alignment.centerLeft,
+                    child: Container(
+                      padding: const EdgeInsets.all(8.0),
+                      decoration: BoxDecoration(
+                        color: chatMessage.sender == 'user'
+                            ? Colors.blue.withOpacity(0.2)
+                            : Colors.grey.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
+                      child: Text(
+                        chatMessage.message,
+                        style: TextStyle(
+                          color: chatMessage.sender == 'user'
+                              ? Colors.blue
+                              : themeProvider.isDarkMode
+                                  ? Colors.white
+                                  : Colors.black,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                    );
-                  },
-                ),
-                if (_isLoading)
-                  Positioned(
-                    bottom: 0,
-                    child: Container(
-                      width: MediaQuery.of(context).size.width,
-                      padding: const EdgeInsets.all(16.0),
-                      alignment: Alignment.center,
-                      child: CircularProgressIndicator(),
                     ),
                   ),
-              ],
+                );
+              },
             ),
           ),
           Padding(
@@ -216,17 +170,26 @@ class _ChatScreenState extends State<ChatScreen> {
                   borderRadius: BorderRadius.circular(8.0),
                 ),
                 suffixIcon: IconButton(
-                  onPressed: _isMessageEmpty ? null : () {
-                    final message = _messageController.text.trim();
-                    if (message.isNotEmpty) {
-                      setState(() {
-                        _isLoading = true;
-                      });
-                      _sendMessage(message);
-                      _messageController.clear();
-                    }
-                  },
-                  icon: Icon(Icons.send),
+                  onPressed: _isLoading
+                      ? null
+                      : _isMessageEmpty
+                          ? null
+                          : () async {
+                              final message = _messageController.text.trim();
+                              if (message.isNotEmpty) {
+                                setState(() {
+                                  _isLoading = true; // Set loading state to true
+                                });
+                                await _sendMessage(message);
+                                _messageController.clear();
+                                setState(() {
+                                  _isLoading = false; // Set loading state to false
+                                });
+                              }
+                            },
+                  icon: _isLoading
+                      ? CircularProgressIndicator() // Show loading spinner if _isLoading is true
+                      : Icon(Icons.send),
                   color: _isMessageEmpty ? Colors.grey : Colors.blue,
                 ),
               ),
@@ -241,3 +204,35 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 }
+
+class ChatApp extends StatelessWidget {
+  const ChatApp({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+
+    return MaterialApp(
+      title: 'Chat GPT 2.0',
+      theme: themeProvider.isDarkMode ? darkTheme : lightTheme,
+      home: const ChatScreen(),
+    );
+  }
+}
+
+final lightTheme = ThemeData(
+  primarySwatch: Colors.blue,
+  primaryColor: Colors.white,
+  brightness: Brightness.light,
+  visualDensity: VisualDensity.adaptivePlatformDensity,
+  fontFamily: 'Arial',
+);
+
+final darkTheme = ThemeData(
+  primarySwatch: Colors.blue,
+  primaryColor: Colors.blueGrey[900],
+  brightness: Brightness.dark,
+  visualDensity: VisualDensity.adaptivePlatformDensity,
+  fontFamily: 'Arial',
+);
+
