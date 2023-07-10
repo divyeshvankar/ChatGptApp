@@ -130,4 +130,4 @@ app.*.map.json
 **/android/.gradle/
 **/android/app/src/main/assets/flutter_assets/
 
-
+chat_api/config.py
